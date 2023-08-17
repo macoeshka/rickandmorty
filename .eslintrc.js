@@ -11,6 +11,10 @@ module.exports = {
     '@vue/typescript'
   ],
 
+  globals: {
+    defineProps: 'readonly'
+  },
+
   parserOptions: {
     parser: '@typescript-eslint/parser'
   },
@@ -18,5 +22,5 @@ module.exports = {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
-  },
+  }
 }
