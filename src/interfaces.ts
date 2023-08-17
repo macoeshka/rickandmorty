@@ -12,12 +12,6 @@ export interface ResourceBase {
   created: string
 }
 
-export interface Endpoints {
-  character: string
-  location: string
-  episode: string
-}
-
 export interface CharacterFilter {
   name?: string
   type?: string

@@ -1,6 +1,6 @@
 <template>
   <Suspense>
-    <Index :page=1 />
+    <Index/>
   </Suspense>
 </template>
 
@@ -25,5 +25,34 @@ html,
 
 html {
   overflow-y: hidden;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+li {
+  margin: 0 5px;
+}
+a {
+  color: #42b983;
+  cursor: pointer;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.scroll-y {
+  overflow-y: scroll;
+}
+
+.m-5 {
+  margin: 5px;
 }
 </style>

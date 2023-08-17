@@ -1,11 +1,11 @@
 <template>
   <div class="full-container full-height">
     <div class="d-flex h-15">
-      <h2>Results:{{ store.characterData?.info?.count }}, Pages: {{ store.characterData?.info?.pages }}</h2>
+      <h2>Results:{{ info?.count }}, Pages: {{ info?.pages }}</h2>
     </div>
     <div class="d-flex h-85">
-      <div :class="layoutWidth" class="flex-container" v-if="store.characterData && store.characterData.results">
-        <div v-for="character in store.characterData.results" :key="character.id">
+      <div :class="layoutWidth" class="flex-container scroll-y" v-if="results">
+        <div v-for="character in results" :key="character.id">
           <ul>
             <li>
               <a @click="characterSelected(character)">{{ character.name }}</a>
@@ -15,7 +15,7 @@
             <li>
               Episodes:
               <span v-for="(episode, index) in character.episode.slice(0, 5)" :key="episode" >
-                <a @click="episodeSelected(episode)">{{ episode.split('/').pop() }}</a>
+                <a @click="episodeSelected(episode)">{{ getIdFromUrl(episode) }}</a>
                 <span v-if="(index != 4) && (index + 1) < character.episode.length">, </span>
               </span>
               <span v-if="character.episode.length > 5">, ...</span>
@@ -23,13 +23,12 @@
           </ul>
         </div>
       </div>
-      <div v-if="layoutWidth != 'full-width'">
+      <div class="w-30 scroll-y" v-if="layoutWidth != 'full-width'">
         <div class="character" v-if="selectedCharacter">
-          {{ selectedCharacter.id }}
-          {{ selectedCharacter.name }}
+          <CharacterDetail :character="selectedCharacter"/>
         </div>
         <div class="episode" v-if="selectedEpisode">
-          {{ selectedEpisode }}
+          <EpisodeDetail :episode="selectedEpisode" @update:character="onUpdateCharacter"  />
         </div>
       </div>
     </div>
@@ -37,48 +36,51 @@
 </template>
 
 <script setup lang="ts">
-// API TEST, REMOVE
 import { computed, ref, Ref } from 'vue'
-import { Character } from '@/interfaces'
+import { Character, Episode } from '@/interfaces'
 import { CharacterStore, useCharacterStore } from '@/store/characters'
-
-const props = defineProps<{
-  page: number;
-}>()
+import { EpisodeStore, useEpisodeStore } from '@/store/episodes'
+import getIdFromUrl from '@/common/utils'
+import CharacterDetail from '@/components/CharacterDetail.vue'
+import EpisodeDetail from '@/components/EpisodeDetail.vue'
 
 const selectedCharacter: Ref<Character|null> = ref(null)
-const selectedEpisode: Ref<string|null> = ref(null)
+const selectedEpisode: Ref<Episode|null> = ref(null)
+const page: Ref<number> = ref(1)
+
+let episodeStore: EpisodeStore
+// TODO SET FILTER
+const chStore: CharacterStore = await useCharacterStore(page.value)
+const info = chStore.response?.info
+const results = chStore.response?.results
 
 const layoutWidth = computed((): string =>
   (selectedCharacter.value === null && selectedEpisode.value == null) ? 'full-width' : 'w-70')
 
 function characterSelected (ch: Character) {
-  console.log('selected:', { ...ch })
   selectedCharacter.value = (ch.id === selectedCharacter.value?.id) ? null : ch
 }
 
-function episodeSelected (ep: string) {
-  selectedEpisode.value = (ep === selectedEpisode.value) ? null : ep
-  console.log('episode selected', ep)
+async function onUpdateCharacter (id: number) {
+  const character = await chStore.fetchCharacterData(id)
+  if (character) {
+    characterSelected(character)
+  }
 }
 
-const store: CharacterStore = await useCharacterStore(props.page)
+async function episodeSelected (ep: string) {
+  const episode: number = getIdFromUrl(ep)
+  if (episode === selectedEpisode.value?.id) {
+    selectedEpisode.value = null
+    return
+  }
+  episodeStore = await useEpisodeStore(episode)
+  selectedEpisode.value = episodeStore.episodeData[episode]!
+}
 
 </script>
 
 <style scoped>
-ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-li {
-  margin: 0 5px;
-}
-a {
-  color: #42b983;
-  cursor: pointer;
-}
 
 .full-container {
   max-height: 97%;
@@ -98,7 +100,6 @@ a {
 .flex-container {
   display: flex;
   flex-wrap: wrap;
-  overflow-y: scroll;
   margin-left: -5px;
 }
 .flex-container > div {
@@ -106,10 +107,6 @@ a {
   height: 160px;
   margin: 5px;
   border: 1px solid #ccc;
-}
-
-.d-flex {
-  display: flex;
 }
 
 .full-height {
@@ -122,6 +119,10 @@ a {
 
 .w-70 {
   width: 70%;
+}
+
+.w-30 {
+  width: 30%;
 }
 
 </style>
