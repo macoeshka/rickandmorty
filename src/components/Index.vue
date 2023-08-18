@@ -2,7 +2,13 @@
   <div class="full-container full-height">
     <div v-if="res && res.info" class="top-nav d-flex h-15">
       <h2>Results:{{ res.info.count }}, Pages: {{ res.info.pages }}</h2>
-      <Pagination v-model="page" :totalPages="res.info.pages"></Pagination>
+      <Pagination v-model="filter.page" :totalPages="res.info.pages"></Pagination>
+      <select class="select-status" v-model="filter.status">
+        <option></option>
+        <option>Dead</option>
+        <option>Alive</option>
+        <option>Unknown</option>
+      </select>
 
     </div>
     <div class="d-flex h-85">
@@ -38,8 +44,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, Ref, watch } from 'vue'
-import { Character, Episode } from '@/interfaces'
+import { computed, reactive, ref, Ref, watch } from 'vue'
+import { Character, CharacterFilter, Episode } from '@/interfaces'
 import { CharacterStore, useCharacterStore } from '@/store/characters'
 import { EpisodeStore, useEpisodeStore } from '@/store/episodes'
 import getIdFromUrl from '@/common/utils'
@@ -49,12 +55,16 @@ import Pagination from '@/components/Pagination.vue'
 
 const selectedCharacter: Ref<Character|null> = ref(null)
 const selectedEpisode: Ref<Episode|null> = ref(null)
-const page: Ref<number> = ref(1)
+const filter = reactive({
+  page: 1,
+  status: undefined
+})
 
 let episodeStore: EpisodeStore
 // TODO SET FILTER
-const chStore: CharacterStore = await useCharacterStore(page.value)
-const res = ref(chStore.response[page.value])
+const chStore: CharacterStore = await useCharacterStore(filter)
+const qs = JSON.stringify(filter)
+const res = ref(chStore.response[qs])
 
 const layoutWidth = computed((): string =>
   (selectedCharacter.value === null && selectedEpisode.value == null) ? 'full-width' : 'w-70')
@@ -80,14 +90,15 @@ async function episodeSelected (ep: string) {
   selectedEpisode.value = episodeStore.episodeData[episode]!
 }
 
-async function updateApiQuery (page:number) {
-  await chStore.fetchCharactersData(page)
-  res.value = chStore.response[page]
+async function updateApiQuery (filter:CharacterFilter) {
+  await chStore.fetchCharactersData(filter)
+  const query = JSON.stringify(filter)
+  res.value = chStore.response[query]
 }
 
-watch(() => page.value, (newVal, oldVal) => {
+watch(() => filter, (newVal, oldVal) => {
   updateApiQuery(newVal)
-})
+}, { deep: true })
 
 </script>
 
@@ -140,4 +151,10 @@ watch(() => page.value, (newVal, oldVal) => {
   align-items: center;
 }
 
+.select-status {
+  color: #42b983;
+  background: none;
+  border: 1px solid #ccc;
+  padding: 5px;
+}
 </style>

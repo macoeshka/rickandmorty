@@ -4,7 +4,7 @@
       <li class="page-item">
         <button type="button" class="page-link" v-if="currentPage != 1" @click="currentPage--"> Previous </button>
       </li>
-      <li v-if="currentPage < totalPages" class="page-item">
+      <li v-if="currentPage <= totalPages" class="page-item">
         <button type="button" :class=getPageClass(pageNumber) v-for="pageNumber in pageArray" :key="pageNumber" @click="currentPage = pageNumber"> {{pageNumber}} </button>
       </li>
       <li class="page-item">
@@ -33,7 +33,7 @@ const currentPage = computed({
 })
 
 const pageArray = computed((): number[] =>
-  Array.from(new Array(Math.min(5, props.totalPages - currentPage.value)), (x, i) => i + currentPage.value)
+  Array.from(new Array(Math.min(5, props.totalPages - currentPage.value + 1)), (x, i) => i + currentPage.value)
 )
 
 function getPageClass (p: number): string {

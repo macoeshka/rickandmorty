@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { Character, Episode, Info, Optional } from './interfaces'
+import { Character, CharacterFilter, Episode, Info, Optional } from './interfaces'
 type C = Array<Character>;
 
 class Api {
@@ -8,13 +8,13 @@ class Api {
     this.server = server
   }
 
-  async getCharacters (page: number): Promise<Optional<Info<C>>> {
+  async getCharacters (filter: CharacterFilter): Promise<Optional<Info<C>>> {
     let charactersData
+    console.log('fetch Characters', filter)
     await axios.get<Info<C>>(`${this.server}/character`, {
+
       // TODO ADD FILTER PARAMS
-      params: {
-        page: page
-      }
+      params: filter
     })
       .then((res) => {
         charactersData = res.data

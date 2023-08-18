@@ -1,27 +1,28 @@
-import { reactive, ref, Ref } from 'vue'
+import { reactive } from 'vue'
 import { Store, defineStore } from 'pinia'
-import { Info, Character, Optional } from '@/interfaces'
+import { Info, Character, Optional, CharacterFilter } from '@/interfaces'
 
 import api from '@/api'
 
 export interface CharacterStore extends Store {
   characterData: Record<number, Optional<Character>>;
-  response: Record<number, Optional<Info<Character[]>>>;
-  fetchCharactersData: (page: number) => Promise<void>;
+  response: Record<string, Optional<Info<Character[]>>>;
+  fetchCharactersData: (filter: CharacterFilter) => Promise<void>;
   fetchCharacterData: (id: number) => Promise<Optional<Character>>;
 }
 
 function createCharacterStore (): CharacterStore {
   return defineStore('characters', () => {
     const characterData: Record<number, Optional<Character>> = reactive({})
-    const response: Record<number, Optional<Info<Character[]>>> = reactive({})
+    const response: Record<string, Optional<Info<Character[]>>> = reactive({})
 
-    async function fetchCharactersData (page:number) {
-      if (response[page] !== undefined) {
+    async function fetchCharactersData (filter:CharacterFilter) {
+      const query = JSON.stringify(filter)
+      if (response[query] !== undefined) {
         return
       }
-      const res = await api.getCharacters(page)
-      response[page] = res
+      const res = await api.getCharacters(filter)
+      response[query] = res
       if (res && res.results) {
         res.results.forEach(element => {
           characterData[element.id] = element
@@ -43,8 +44,8 @@ function createCharacterStore (): CharacterStore {
 }
 
 // TODO SET UP FILTER
-export async function useCharacterStore (page: number): Promise<CharacterStore> {
+export async function useCharacterStore (query: CharacterFilter): Promise<CharacterStore> {
   const storeInstance: CharacterStore = createCharacterStore()
-  await storeInstance.fetchCharactersData(page)
+  await storeInstance.fetchCharactersData(query)
   return storeInstance
 }
