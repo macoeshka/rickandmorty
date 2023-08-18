@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import { Store, defineStore } from 'pinia'
 import { Info, Character, Optional, CharacterFilter } from '@/interfaces'
+import { stringifyFilter } from '@/common/utils'
 
 import api from '@/api'
 
@@ -17,7 +18,7 @@ function createCharacterStore (): CharacterStore {
     const response: Record<string, Optional<Info<Character[]>>> = reactive({})
 
     async function fetchCharactersData (filter:CharacterFilter) {
-      const query = JSON.stringify(filter)
+      const query = stringifyFilter(filter)
       if (response[query] !== undefined) {
         return
       }
@@ -43,7 +44,6 @@ function createCharacterStore (): CharacterStore {
   }, { persist: true })()
 }
 
-// TODO SET UP FILTER
 export async function useCharacterStore (query: CharacterFilter): Promise<CharacterStore> {
   const storeInstance: CharacterStore = createCharacterStore()
   await storeInstance.fetchCharactersData(query)

@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { Episode } from '@/interfaces'
-import getIdFromUrl from '@/common/utils'
+import { getIdFromUrl } from '@/common/utils'
 
 defineProps<({
   episode: Episode,
