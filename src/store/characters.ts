@@ -6,7 +6,7 @@ import api from '@/api'
 
 export interface CharacterStore extends Store {
   characterData: Record<number, Optional<Character>>;
-  response: Record<number,Optional<Info<Character[]>>>;
+  response: Record<number, Optional<Info<Character[]>>>;
   fetchCharactersData: (page: number) => Promise<void>;
   fetchCharacterData: (id: number) => Promise<Optional<Character>>;
 }

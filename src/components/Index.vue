@@ -2,19 +2,8 @@
   <div class="full-container full-height">
     <div v-if="res && res.info" class="top-nav d-flex h-15">
       <h2>Results:{{ res.info.count }}, Pages: {{ res.info.pages }}</h2>
-      <nav aria-label="Page navigation example">
-        <ul class="pagination d-flex">
-          <li class="page-item">
-            <button type="button" class="page-link" v-if="page != 1" @click="page--"> Previous </button>
-          </li>
-          <li v-if="res.info.pages && page < res.info.pages" class="page-item">
-            <button type="button" :class=getPageClass(pageNumber) v-for="pageNumber in Array.from(new Array(Math.min(5, res.info.pages-page)), (x, i) => i + page)" :key="pageNumber" @click="page = pageNumber"> {{pageNumber}} </button>
-          </li>
-          <li class="page-item">
-            <button type="button" class="page-link" v-if="res.info.next" @click="page++"> Next </button>
-          </li>
-        </ul>
-      </nav>
+      <Pagination v-model="page" :totalPages="res.info.pages"></Pagination>
+
     </div>
     <div class="d-flex h-85">
       <div :class="layoutWidth" class="flex-container scroll-y" v-if="res?.results">
@@ -56,6 +45,7 @@ import { EpisodeStore, useEpisodeStore } from '@/store/episodes'
 import getIdFromUrl from '@/common/utils'
 import CharacterDetail from '@/components/CharacterDetail.vue'
 import EpisodeDetail from '@/components/EpisodeDetail.vue'
+import Pagination from '@/components/Pagination.vue'
 
 const selectedCharacter: Ref<Character|null> = ref(null)
 const selectedEpisode: Ref<Episode|null> = ref(null)
@@ -68,10 +58,6 @@ const res = ref(chStore.response[page.value])
 
 const layoutWidth = computed((): string =>
   (selectedCharacter.value === null && selectedEpisode.value == null) ? 'full-width' : 'w-70')
-
-function getPageClass (p: number): string {
-  return 'page-link' + (p === page.value ? ' active' : '')
-}
 
 function characterSelected (ch: Character) {
   selectedCharacter.value = (ch.id === selectedCharacter.value?.id) ? null : ch
@@ -154,15 +140,4 @@ watch(() => page.value, (newVal, oldVal) => {
   align-items: center;
 }
 
-button.page-link {
-  color: #42b983;
-  background: none;
-  border: 1px solid #ccc;
-  padding: 5px;
-}
-
-button.page-link.active {
-  background-color: #42b983;
-  color: white;
-}
 </style>
