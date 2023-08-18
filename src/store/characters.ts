@@ -6,7 +6,7 @@ import api from '@/api'
 
 export interface CharacterStore extends Store {
   characterData: Record<number, Optional<Character>>;
-  response: Optional<Info<Character[]>>;
+  response: Record<number,Optional<Info<Character[]>>>;
   fetchCharactersData: (page: number) => Promise<void>;
   fetchCharacterData: (id: number) => Promise<Optional<Character>>;
 }
@@ -14,11 +14,14 @@ export interface CharacterStore extends Store {
 function createCharacterStore (): CharacterStore {
   return defineStore('characters', () => {
     const characterData: Record<number, Optional<Character>> = reactive({})
-    const response: Ref<Optional<Info<Character[]>>> = ref(undefined)
+    const response: Record<number, Optional<Info<Character[]>>> = reactive({})
 
     async function fetchCharactersData (page:number) {
+      if (response[page] !== undefined) {
+        return
+      }
       const res = await api.getCharacters(page)
-      response.value = res
+      response[page] = res
       if (res && res.results) {
         res.results.forEach(element => {
           characterData[element.id] = element

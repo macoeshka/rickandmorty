@@ -1,11 +1,24 @@
 <template>
   <div class="full-container full-height">
-    <div class="d-flex h-15">
-      <h2>Results:{{ info?.count }}, Pages: {{ info?.pages }}</h2>
+    <div v-if="res && res.info" class="top-nav d-flex h-15">
+      <h2>Results:{{ res.info.count }}, Pages: {{ res.info.pages }}</h2>
+      <nav aria-label="Page navigation example">
+        <ul class="pagination d-flex">
+          <li class="page-item">
+            <button type="button" class="page-link" v-if="page != 1" @click="page--"> Previous </button>
+          </li>
+          <li v-if="res.info.pages && page < res.info.pages" class="page-item">
+            <button type="button" :class=getPageClass(pageNumber) v-for="pageNumber in Array.from(new Array(Math.min(5, res.info.pages-page)), (x, i) => i + page)" :key="pageNumber" @click="page = pageNumber"> {{pageNumber}} </button>
+          </li>
+          <li class="page-item">
+            <button type="button" class="page-link" v-if="res.info.next" @click="page++"> Next </button>
+          </li>
+        </ul>
+      </nav>
     </div>
     <div class="d-flex h-85">
-      <div :class="layoutWidth" class="flex-container scroll-y" v-if="results">
-        <div v-for="character in results" :key="character.id">
+      <div :class="layoutWidth" class="flex-container scroll-y" v-if="res?.results">
+        <div v-for="character in res.results" :key="character.id">
           <ul>
             <li>
               <a @click="characterSelected(character)">{{ character.name }}</a>
@@ -36,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, Ref } from 'vue'
+import { computed, ref, Ref, watch } from 'vue'
 import { Character, Episode } from '@/interfaces'
 import { CharacterStore, useCharacterStore } from '@/store/characters'
 import { EpisodeStore, useEpisodeStore } from '@/store/episodes'
@@ -51,11 +64,14 @@ const page: Ref<number> = ref(1)
 let episodeStore: EpisodeStore
 // TODO SET FILTER
 const chStore: CharacterStore = await useCharacterStore(page.value)
-const info = chStore.response?.info
-const results = chStore.response?.results
+const res = ref(chStore.response[page.value])
 
 const layoutWidth = computed((): string =>
   (selectedCharacter.value === null && selectedEpisode.value == null) ? 'full-width' : 'w-70')
+
+function getPageClass (p: number): string {
+  return 'page-link' + (p === page.value ? ' active' : '')
+}
 
 function characterSelected (ch: Character) {
   selectedCharacter.value = (ch.id === selectedCharacter.value?.id) ? null : ch
@@ -77,6 +93,15 @@ async function episodeSelected (ep: string) {
   episodeStore = await useEpisodeStore(episode)
   selectedEpisode.value = episodeStore.episodeData[episode]!
 }
+
+async function updateApiQuery (page:number) {
+  await chStore.fetchCharactersData(page)
+  res.value = chStore.response[page]
+}
+
+watch(() => page.value, (newVal, oldVal) => {
+  updateApiQuery(newVal)
+})
 
 </script>
 
@@ -125,4 +150,19 @@ async function episodeSelected (ep: string) {
   width: 30%;
 }
 
+.top-nav {
+  align-items: center;
+}
+
+button.page-link {
+  color: #42b983;
+  background: none;
+  border: 1px solid #ccc;
+  padding: 5px;
+}
+
+button.page-link.active {
+  background-color: #42b983;
+  color: white;
+}
 </style>
