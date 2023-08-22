@@ -32,9 +32,22 @@ const currentPage = computed({
   set: (value: number) => emit('update:modelValue', value)
 })
 
-const pageArray = computed((): number[] =>
-  Array.from(new Array(Math.min(5, props.totalPages - currentPage.value + 1)), (x, i) => i + currentPage.value)
-)
+const pageArray = computed((): number[] => {
+  const count = Math.min(5, props.totalPages)
+  const padding = Math.floor((count - 1) / 2)
+
+  let start = currentPage.value - padding
+  const stop = currentPage.value + padding
+
+  if (start <= 0 || stop > props.totalPages) {
+    start = 1
+  }
+  if (stop > props.totalPages) {
+    start = props.totalPages - count + 1
+  }
+
+  return Array.from(new Array(count), (x, i) => i + start)
+})
 
 function getPageClass (p: number): string {
   return 'page-link' + (p === currentPage.value ? ' active' : '')
